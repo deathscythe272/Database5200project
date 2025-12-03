@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if equipment else 'Add' }} Equipment - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ 'Edit' if equipment else 'Add New' }} Equipment</h2>
+    <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {% if equipment %}
+                    <input type="hidden" name="version" value="{{ equipment.version }}">
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Equipment Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                   value="{{ equipment.name if equipment else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="model" class="form-label">Model</label>
+                            <input type="text" class="form-control" id="model" name="model"
+                                   value="{{ equipment.model if equipment else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="serial_number" class="form-label">Serial Number</label>
+                            <input type="text" class="form-control" id="serial_number" name="serial_number"
+                                   value="{{ equipment.serial_number if equipment else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="manufacturer" class="form-label">Manufacturer</label>
+                            <input type="text" class="form-control" id="manufacturer" name="manufacturer"
+                                   value="{{ equipment.manufacturer if equipment else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category_id" class="form-label">Category</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">-- Select Category --</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.category_id }}" 
+                                    {{ 'selected' if equipment and equipment.category_id == cat.category_id }}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="location_id" class="form-label">Location</label>
+                            <select class="form-select" id="location_id" name="location_id">
+                                <option value="">-- Select Location --</option>
+                                {% for loc in locations %}
+                                <option value="{{ loc.location_id }}"
+                                    {{ 'selected' if equipment and equipment.location_id == loc.location_id }}>
+                                    {{ loc.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="purchase_date" class="form-label">Purchase Date</label>
+                            <input type="date" class="form-control" id="purchase_date" name="purchase_date"
+                                   value="{{ equipment.purchase_date if equipment and equipment.purchase_date else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="purchase_price" class="form-label">Purchase Price ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="purchase_price" name="purchase_price"
+                                   value="{{ equipment.purchase_price if equipment and equipment.purchase_price else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="warranty_expiration" class="form-label">Warranty Expiration</label>
+                            <input type="date" class="form-control" id="warranty_expiration" name="warranty_expiration"
+                                   value="{{ equipment.warranty_expiration if equipment and equipment.warranty_expiration else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="active" {{ 'selected' if not equipment or equipment.status == 'active' }}>Active</option>
+                                <option value="inactive" {{ 'selected' if equipment and equipment.status == 'inactive' }}>Inactive</option>
+                                <option value="under_repair" {{ 'selected' if equipment and equipment.status == 'under_repair' }}>Under Repair</option>
+                                <option value="retired" {{ 'selected' if equipment and equipment.status == 'retired' }}>Retired</option>
+                            </select>
+                        </div>
+                        {% if equipment %}
+                        <div class="col-md-4">
+                            <label for="usage_hours" class="form-label">Usage Hours</label>
+                            <input type="number" step="0.1" class="form-control" id="usage_hours" name="usage_hours"
+                                   value="{{ equipment.usage_hours if equipment.usage_hours else 0 }}">
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ equipment.notes if equipment else '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {{ 'Update' if equipment else 'Create' }} Equipment
+                        </button>
+                        <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Inventory - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Parts Inventory</h2>
+    <div>
+        <a href="{{ url_for('inventory.receive_parts') }}" class="btn btn-success"><i class="bi bi-box-arrow-in-down"></i> Receive</a>
+        <a href="{{ url_for('inventory.issue_parts') }}" class="btn btn-warning"><i class="bi bi-box-arrow-up"></i> Issue</a>
+        <a href="{{ url_for('inventory.list_parts') }}" class="btn btn-outline-secondary">Manage Parts</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="search" placeholder="Search parts..." value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="location">
+                    <option value="">All Locations</option>
+                    {% for loc in locations %}
+                    <option value="{{ loc.location_id }}" {{ 'selected' if request.args.get('location')|int == loc.location_id }}>{{ loc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="low_stock" name="low_stock" {{ 'checked' if request.args.get('low_stock') }}>
+                    <label class="form-check-label" for="low_stock">Low Stock Only</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Part Number</th>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>On Hand</th>
+                    <th>Reserved</th>
+                    <th>Available</th>
+                    <th>Reorder Point</th>
+                    <th>Bin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in inventory.items %}
+                <tr class="{{ 'table-warning' if inv.is_low_stock }}">
+                    <td><strong>{{ inv.part.part_number }}</strong></td>
+                    <td>{{ inv.part.name }}</td>
+                    <td>{{ inv.location.name }}</td>
+                    <td>{{ inv.quantity_on_hand }}</td>
+                    <td>{{ inv.quantity_reserved }}</td>
+                    <td>{{ inv.available }}</td>
+                    <td>{{ inv.reorder_point }}</td>
+                    <td>{{ inv.bin_location or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center py-4 text-muted">No inventory records found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

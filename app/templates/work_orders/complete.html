@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Complete Work Order - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Complete Work Order: {{ work_order.work_order_number }}</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Complete Work Order</div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="labor_hours" class="form-label">Labor Hours</label>
+                        <input type="number" step="0.25" class="form-control" id="labor_hours" name="labor_hours"
+                               value="{{ work_order.labor_hours or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="labor_cost" class="form-label">Labor Cost ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="labor_cost" name="labor_cost"
+                               value="{{ work_order.labor_cost or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Completion Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4">{{ work_order.notes or '' }}</textarea>
+                        <small class="text-muted">Describe the work performed, any issues found, recommendations, etc.</small>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg"></i> Mark as Completed
+                        </button>
+                        <a href="{{ url_for('work_orders.view', work_order_id=work_order.work_order_id) }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Work Order Summary</div>
+            <div class="card-body">
+                <p><strong>Title:</strong> {{ work_order.title }}</p>
+                <p><strong>Equipment:</strong> {{ work_order.equipment.name }}</p>
+                <p><strong>Type:</strong> {{ work_order.type }}</p>
+                <p><strong>Started:</strong> {{ work_order.started_at.strftime('%Y-%m-%d %H:%M') if work_order.started_at else 'Not started' }}</p>
+                {% if work_order.description %}
+                <hr>
+                <p><strong>Description:</strong></p>
+                <p>{{ work_order.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

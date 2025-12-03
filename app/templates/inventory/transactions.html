@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Inventory Transactions - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Inventory Transactions</h2>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Part</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Reference</th>
+                    <th>By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions.items %}
+                <tr>
+                    <td>{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ t.inventory.part.name if t.inventory else '-' }}</td>
+                    <td>{{ t.inventory.location.name if t.inventory else '-' }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'success' if t.transaction_type == 'receipt' else 'warning' if t.transaction_type == 'issue' else 'info' }}">
+                            {{ t.transaction_type }}
+                        </span>
+                    </td>
+                    <td class="{{ 'text-success' if t.quantity > 0 else 'text-danger' }}">
+                        {{ '+' if t.quantity > 0 else '' }}{{ t.quantity }}
+                    </td>
+                    <td>{{ t.reference_number or t.work_order.work_order_number if t.work_order else '-' }}</td>
+                    <td>{{ t.user.full_name if t.user else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No transactions found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if transactions.pages > 1 %}
+    <div class="card-footer">
+        <nav>
+            <ul class="pagination mb-0 justify-content-center">
+                {% for page in transactions.iter_pages() %}
+                    {% if page %}
+                        <li class="page-item {{ 'active' if page == transactions.page }}">
+                            <a class="page-link" href="{{ url_for('inventory.transactions', page=page) }}">{{ page }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<a href="{{ url_for('inventory.list_inventory') }}" class="btn btn-outline-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Back to Inventory
+</a>
+{% endblock %}

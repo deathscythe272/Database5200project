@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if work_order else 'Create' }} Work Order - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ 'Edit' if work_order else 'Create' }} Work Order</h2>
+    <a href="{{ url_for('work_orders.list_work_orders') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {% if work_order %}
+                    <input type="hidden" name="version" value="{{ work_order.version }}">
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="equipment_id" class="form-label">Equipment *</label>
+                        <select class="form-select" id="equipment_id" name="equipment_id" required {{ 'disabled' if work_order }}>
+                            <option value="">-- Select Equipment --</option>
+                            {% for e in equipment %}
+                            <option value="{{ e.equipment_id }}" 
+                                {{ 'selected' if (work_order and work_order.equipment_id == e.equipment_id) or (selected_equipment == e.equipment_id) }}>
+                                {{ e.name }} {% if e.serial_number %}({{ e.serial_number }}){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if work_order %}
+                        <input type="hidden" name="equipment_id" value="{{ work_order.equipment_id }}">
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               value="{{ work_order.title if work_order else '' }}" maxlength="200">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ work_order.description if work_order else '' }}</textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="type" class="form-label">Type *</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="preventive" {{ 'selected' if not work_order or work_order.type == 'preventive' }}>Preventive</option>
+                                <option value="corrective" {{ 'selected' if work_order and work_order.type == 'corrective' }}>Corrective</option>
+                                <option value="emergency" {{ 'selected' if work_order and work_order.type == 'emergency' }}>Emergency</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="priority" class="form-label">Priority *</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low" {{ 'selected' if work_order and work_order.priority == 'low' }}>Low</option>
+                                <option value="medium" {{ 'selected' if not work_order or work_order.priority == 'medium' }}>Medium</option>
+                                <option value="high" {{ 'selected' if work_order and work_order.priority == 'high' }}>High</option>
+                                <option value="critical" {{ 'selected' if work_order and work_order.priority == 'critical' }}>Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="scheduled_date" class="form-label">Scheduled Date</label>
+                            <input type="date" class="form-control" id="scheduled_date" name="scheduled_date"
+                                   value="{{ work_order.scheduled_date if work_order and work_order.scheduled_date else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="assigned_to" class="form-label">Assign To</label>
+                        <select class="form-select" id="assigned_to" name="assigned_to">
+                            <option value="">-- Unassigned --</option>
+                            {% for tech in technicians %}
+                            <option value="{{ tech.user_id }}" 
+                                {{ 'selected' if work_order and work_order.assigned_to == tech.user_id }}>
+                                {{ tech.full_name }} ({{ tech.role }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    {% if work_order %}
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ work_order.notes or '' }}</textarea>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {{ 'Update' if work_order else 'Create' }} Work Order
+                        </button>
+                        <a href="{{ url_for('work_orders.list_work_orders') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

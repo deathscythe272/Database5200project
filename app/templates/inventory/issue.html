@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Issue Parts - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Issue Parts from Inventory</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="inventory_id" class="form-label">Part / Location *</label>
+                        <select class="form-select" id="inventory_id" name="inventory_id" required>
+                            <option value="">-- Select Part --</option>
+                            {% for inv in inventory %}
+                            <option value="{{ inv.inventory_id }}" data-available="{{ inv.available }}">
+                                {{ inv.part.part_number }} - {{ inv.part.name }} @ {{ inv.location.name }} (Available: {{ inv.available }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity *</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="work_order_id" class="form-label">Work Order (Optional)</label>
+                        <select class="form-select" id="work_order_id" name="work_order_id">
+                            <option value="">-- No Work Order --</option>
+                            {% for wo in work_orders %}
+                            <option value="{{ wo.work_order_id }}">{{ wo.work_order_number }} - {{ wo.title[:30] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-box-arrow-up"></i> Issue Parts
+                        </button>
+                        <a href="{{ url_for('inventory.list_inventory') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

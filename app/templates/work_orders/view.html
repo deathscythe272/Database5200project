@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}{{ work_order.work_order_number }} - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>{{ work_order.work_order_number }}</h2>
+        <p class="text-muted mb-0">{{ work_order.title }}</p>
+    </div>
+    <div>
+        {% if work_order.status == 'open' %}
+        <form method="POST" action="{{ url_for('work_orders.start', work_order_id=work_order.work_order_id) }}" class="d-inline">
+            <button type="submit" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Work</button>
+        </form>
+        {% endif %}
+        {% if work_order.status in ['open', 'in_progress'] %}
+        <a href="{{ url_for('work_orders.complete', work_order_id=work_order.work_order_id) }}" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Complete
+        </a>
+        <a href="{{ url_for('work_orders.edit', work_order_id=work_order.work_order_id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Work Order Details -->
+        <div class="card mb-4">
+            <div class="card-header">Work Order Details</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Equipment:</strong> 
+                            <a href="{{ url_for('equipment.view', equipment_id=work_order.equipment_id) }}">
+                                {{ work_order.equipment.name }}
+                            </a>
+                        </p>
+                        <p><strong>Location:</strong> {{ work_order.equipment.location.name if work_order.equipment.location else '-' }}</p>
+                        <p><strong>Type:</strong> <span class="badge bg-info">{{ work_order.type }}</span></p>
+                        <p><strong>Priority:</strong> <span class="priority-{{ work_order.priority }}"><i class="bi bi-circle-fill"></i> {{ work_order.priority }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if work_order.status == 'completed' else 'primary' if work_order.status == 'in_progress' else 'secondary' if work_order.status == 'cancelled' else 'warning' }}">
+                                {{ work_order.status }}
+                            </span>
+                        </p>
+                        <p><strong>Assigned To:</strong> {{ work_order.assignee.full_name if work_order.assignee else 'Unassigned' }}</p>
+                        <p><strong>Created By:</strong> {{ work_order.creator.full_name }}</p>
+                        <p><strong>Scheduled:</strong> {{ work_order.scheduled_date or '-' }}</p>
+                    </div>
+                </div>
+                
+                {% if work_order.description %}
+                <hr>
+                <p><strong>Description:</strong></p>
+                <p>{{ work_order.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card mb-4">
+            <div class="card-header">Timeline</div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-circle-fill text-success"></i>
+                        <strong>Created:</strong> {{ work_order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </li>
+                    {% if work_order.started_at %}
+                    <li class="mb-2">
+                        <i class="bi bi-circle-fill text-primary"></i>
+                        <strong>Started:</strong> {{ work_order.started_at.strftime('%Y-%m-%d %H:%M') }}
+                    </li>
+                    {% endif %}
+                    {% if work_order.completed_at %}
+                    <li class="mb-2">
+                        <i class="bi bi-circle-fill text-success"></i>
+                        <strong>Completed:</strong> {{ work_order.completed_at.strftime('%Y-%m-%d %H:%M') }}
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if work_order.notes %}
+        <div class="card mb-4">
+            <div class="card-header">Notes</div>
+            <div class="card-body">
+                <pre class="mb-0" style="white-space: pre-wrap;">{{ work_order.notes }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Costs -->
+        <div class="card mb-4">
+            <div class="card-header">Costs</div>
+            <div class="card-body">
+                <p><strong>Labor Hours:</strong> {{ work_order.labor_hours or 0 }}</p>
+                <p><strong>Labor Cost:</strong> ${{ '%.2f'|format(work_order.labor_cost or 0) }}</p>
+                <p><strong>Parts Cost:</strong> ${{ '%.2f'|format(work_order.parts_cost) }}</p>
+                <hr>
+                <p><strong>Total Cost:</strong> <span class="fs-5">${{ '%.2f'|format(work_order.total_cost) }}</span></p>
+            </div>
+        </div>
+
+        <!-- Parts Used -->
+        <div class="card mb-4">
+            <div class="card-header">Parts Used</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for wp in work_order.parts_used %}
+                    <li class="list-group-item">
+                        {{ wp.part.name }}<br>
+                        <small class="text-muted">Qty: {{ wp.quantity_used }} @ ${{ '%.2f'|format(wp.unit_cost or 0) }}</small>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">No parts used</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        {% if work_order.status not in ['completed', 'cancelled'] %}
+        <div class="card">
+            <div class="card-header">Actions</div>
+            <div class="card-body">
+                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                    <i class="bi bi-x-circle"></i> Cancel Work Order
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<a href="{{ url_for('work_orders.list_work_orders') }}" class="btn btn-outline-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Back to Work Orders
+</a>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('work_orders.cancel', work_order_id=work_order.work_order_id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancel Work Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="reason" class="form-label">Reason for cancellation:</label>
+                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Cancel Work Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

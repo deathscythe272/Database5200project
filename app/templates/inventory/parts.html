@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Parts - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Parts Catalog</h2>
+    <a href="{{ url_for('inventory.create_part') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add Part
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="Search parts..." value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Part Number</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Unit Cost</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for part in parts.items %}
+                <tr>
+                    <td><strong>{{ part.part_number }}</strong></td>
+                    <td>{{ part.name }}</td>
+                    <td>{{ part.category or '-' }}</td>
+                    <td>{{ '$%.2f'|format(part.unit_cost) if part.unit_cost else '-' }}</td>
+                    <td><span class="badge bg-{{ 'success' if part.is_active else 'secondary' }}">{{ 'Active' if part.is_active else 'Inactive' }}</span></td>
+                    <td>
+                        <a href="{{ url_for('inventory.edit_part', part_id=part.part_id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No parts found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<a href="{{ url_for('inventory.list_inventory') }}" class="btn btn-outline-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Back to Inventory
+</a>
+{% endblock %}

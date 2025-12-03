@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if schedule else 'Create' }} Maintenance Schedule - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ 'Edit' if schedule else 'Create' }} Maintenance Schedule</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="equipment_id" class="form-label">Equipment *</label>
+                        <select class="form-select" id="equipment_id" name="equipment_id" required {{ 'disabled' if schedule }}>
+                            <option value="">-- Select Equipment --</option>
+                            {% for e in equipment %}
+                            <option value="{{ e.equipment_id }}" 
+                                {{ 'selected' if (schedule and schedule.equipment_id == e.equipment_id) or (selected_equipment == e.equipment_id) }}>
+                                {{ e.name }} {% if e.serial_number %}({{ e.serial_number }}){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if schedule %}
+                        <input type="hidden" name="equipment_id" value="{{ schedule.equipment_id }}">
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="task_name" class="form-label">Task Name *</label>
+                        <input type="text" class="form-control" id="task_name" name="task_name" required
+                               value="{{ schedule.task_name if schedule else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ schedule.description if schedule else '' }}</textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="frequency_days" class="form-label">Frequency (Days)</label>
+                            <input type="number" class="form-control" id="frequency_days" name="frequency_days" min="1"
+                                   value="{{ schedule.frequency_days if schedule and schedule.frequency_days else '' }}">
+                            <small class="text-muted">e.g., 30 for monthly</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="frequency_hours" class="form-label">Frequency (Hours)</label>
+                            <input type="number" step="0.5" class="form-control" id="frequency_hours" name="frequency_hours" min="1"
+                                   value="{{ schedule.frequency_hours if schedule and schedule.frequency_hours else '' }}">
+                            <small class="text-muted">Based on usage hours</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="estimated_duration_min" class="form-label">Est. Duration (min)</label>
+                            <input type="number" class="form-control" id="estimated_duration_min" name="estimated_duration_min" min="1"
+                                   value="{{ schedule.estimated_duration_min if schedule and schedule.estimated_duration_min else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="low" {{ 'selected' if schedule and schedule.priority == 'low' }}>Low</option>
+                                <option value="medium" {{ 'selected' if not schedule or schedule.priority == 'medium' }}>Medium</option>
+                                <option value="high" {{ 'selected' if schedule and schedule.priority == 'high' }}>High</option>
+                                <option value="critical" {{ 'selected' if schedule and schedule.priority == 'critical' }}>Critical</option>
+                            </select>
+                        </div>
+                        {% if schedule %}
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <div class="form-check mt-2">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                       {{ 'checked' if schedule.is_active }}>
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {{ 'Update' if schedule else 'Create' }} Schedule
+                        </button>
+                        <a href="{{ url_for('maintenance.list_schedules') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

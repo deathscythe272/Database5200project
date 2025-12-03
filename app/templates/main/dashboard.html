@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dashboard</h2>
+    <span class="text-muted">Welcome back, {{ current_user.first_name }}!</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Equipment</h6>
+                        <h3>{{ stats.total_equipment }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-box fs-1 text-primary opacity-50"></i>
+                    </div>
+                </div>
+                <small class="text-success">{{ stats.active_equipment }} active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Open Work Orders</h6>
+                        <h3>{{ stats.open_work_orders }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clipboard-check fs-1 text-warning opacity-50"></i>
+                    </div>
+                </div>
+                <small><a href="{{ url_for('work_orders.list_work_orders', my_orders=1) }}">{{ stats.my_work_orders }} assigned to me</a></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Overdue Maintenance</h6>
+                        <h3>{{ stats.overdue_maintenance }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-exclamation-triangle fs-1 text-danger opacity-50"></i>
+                    </div>
+                </div>
+                <small><a href="{{ url_for('maintenance.overdue') }}" class="text-danger">View overdue</a></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Low Stock Items</h6>
+                        <h3>{{ stats.low_stock }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-boxes fs-1 text-success opacity-50"></i>
+                    </div>
+                </div>
+                <small><a href="{{ url_for('inventory.low_stock') }}">View inventory alerts</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Work Orders -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Recent Work Orders</span>
+                <a href="{{ url_for('work_orders.create') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Number</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wo in recent_work_orders %}
+                        <tr>
+                            <td><a href="{{ url_for('work_orders.view', work_order_id=wo.work_order_id) }}">{{ wo.work_order_number }}</a></td>
+                            <td>{{ wo.title[:30] }}{% if wo.title|length > 30 %}...{% endif %}</td>
+                            <td><span class="badge bg-{{ 'success' if wo.status == 'completed' else 'warning' if wo.status == 'in_progress' else 'secondary' }}">{{ wo.status }}</span></td>
+                            <td><span class="priority-{{ wo.priority }}">{{ wo.priority }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">No work orders yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('work_orders.list_work_orders') }}">View all work orders →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Maintenance -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Upcoming Maintenance (Next 7 Days)</span>
+                <a href="{{ url_for('maintenance.create') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Task</th>
+                            <th>Equipment</th>
+                            <th>Due</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in upcoming_maintenance %}
+                        <tr class="{{ 'table-danger' if m.is_overdue }}">
+                            <td><a href="{{ url_for('maintenance.view', schedule_id=m.schedule_id) }}">{{ m.task_name[:20] }}</a></td>
+                            <td>{{ m.equipment.name[:20] }}</td>
+                            <td>
+                                {% if m.is_overdue %}
+                                    <span class="text-danger">OVERDUE</span>
+                                {% else %}
+                                    {{ m.next_due.strftime('%m/%d') if m.next_due else 'N/A' }}
+                                {% endif %}
+                            </td>
+                            <td><span class="priority-{{ m.priority }}">{{ m.priority }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">No upcoming maintenance</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('maintenance.list_schedules') }}">View all schedules →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Quick Actions</div>
+            <div class="card-body">
+                <a href="{{ url_for('equipment.create') }}" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-plus-circle"></i> Add Equipment
+                </a>
+                <a href="{{ url_for('work_orders.create') }}" class="btn btn-outline-warning me-2">
+                    <i class="bi bi-clipboard-plus"></i> Create Work Order
+                </a>
+                <a href="{{ url_for('inventory.receive_parts') }}" class="btn btn-outline-success me-2">
+                    <i class="bi bi-box-arrow-in-down"></i> Receive Parts
+                </a>
+                <a href="{{ url_for('inventory.issue_parts') }}" class="btn btn-outline-info me-2">
+                    <i class="bi bi-box-arrow-up"></i> Issue Parts
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Maintenance Schedules - Gym Equipment Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Maintenance Schedules</h2>
+    <div>
+        <a href="{{ url_for('maintenance.overdue') }}" class="btn btn-outline-danger">
+            <i class="bi bi-exclamation-triangle"></i> Overdue
+        </a>
+        <a href="{{ url_for('maintenance.upcoming') }}" class="btn btn-outline-warning">
+            <i class="bi bi-calendar"></i> Upcoming
+        </a>
+        <a href="{{ url_for('maintenance.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Schedule
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <select class="form-select" name="equipment_id">
+                    <option value="">All Equipment</option>
+                    {% for e in equipment %}
+                    <option value="{{ e.equipment_id }}" {{ 'selected' if request.args.get('equipment_id')|int == e.equipment_id }}>{{ e.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="overdue" name="overdue" {{ 'checked' if request.args.get('overdue') }}>
+                    <label class="form-check-label" for="overdue">Overdue Only</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Task</th>
+                    <th>Equipment</th>
+                    <th>Frequency</th>
+                    <th>Priority</th>
+                    <th>Last Performed</th>
+                    <th>Next Due</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in schedules.items %}
+                <tr class="{{ 'table-danger' if s.is_overdue }}">
+                    <td><a href="{{ url_for('maintenance.view', schedule_id=s.schedule_id) }}"><strong>{{ s.task_name }}</strong></a></td>
+                    <td><a href="{{ url_for('equipment.view', equipment_id=s.equipment_id) }}">{{ s.equipment.name }}</a></td>
+                    <td>
+                        {% if s.frequency_days %}Every {{ s.frequency_days }} days{% endif %}
+                        {% if s.frequency_hours %}Every {{ s.frequency_hours }} hours{% endif %}
+                    </td>
+                    <td><span class="priority-{{ s.priority }}">{{ s.priority }}</span></td>
+                    <td>{{ s.last_performed.strftime('%Y-%m-%d') if s.last_performed else 'Never' }}</td>
+                    <td>
+                        {% if s.is_overdue %}
+                            <span class="text-danger fw-bold">OVERDUE</span>
+                        {% elif s.next_due %}
+                            {{ s.next_due.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('maintenance.create_work_order', schedule_id=s.schedule_id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-warning" title="Create Work Order">
+                                <i class="bi bi-clipboard-plus"></i>
+                            </button>
+                        </form>
+                        <a href="{{ url_for('maintenance.edit', schedule_id=s.schedule_id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No maintenance schedules found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
